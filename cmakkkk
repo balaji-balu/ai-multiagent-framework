@@ -1,0 +1,129 @@
+# CMakeLists.txt
+cmake_minimum_required(VERSION 3.12)
+project(AIAgentFramework VERSION 0.1.0 LANGUAGES CXX)
+
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Add compile options for MISRA and K&R compliance
+add_compile_options(
+    -Wall
+    -Wextra
+    -Werror
+    -Wconversion
+    -Wsign-conversion
+    -pedantic
+)
+
+# Find required packages
+find_package(sobjectizer REQUIRED)
+find_package(nlohmann_json REQUIRED)
+find_package(uWebSockets REQUIRED)
+
+# Include directories
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+# Library sources
+set(FRAMEWORK_SOURCES
+    src/agent.cpp
+    src/agent_factory.cpp
+    src/agent_manager.cpp
+    src/framework.cpp
+    src/learning_agent.cpp
+    src/rule_based_agent.cpp
+)
+
+# Header files
+set(FRAMEWORK_HEADERS
+    include/agent.h
+    include/agent_factory.h
+    include/agent_manager.h
+    include/framework.h
+    include/learning_agent.h
+    include/messages.h
+    include/rule_based_agent.h
+)
+
+# Main library
+add_library(ai_framework STATIC ${FRAMEWORK_SOURCES} ${FRAMEWORK_HEADERS})
+target_link_libraries(ai_framework
+    PUBLIC
+        sobjectizer::sobjectizer
+        nlohmann_json::nlohmann_json
+        uWebSockets::uWebSockets
+)
+
+# Example application
+add_executable(ai_framework_example examples/main.cpp)
+target_link_libraries(ai_framework_example
+    PRIVATE
+        ai_framework
+)
+
+# Tests
+option(BUILD_TESTS "Build the tests" ON)
+if(BUILD_TESTS)
+    # Find Catch2
+    find_package(Catch2 REQUIRED)
+    
+    # Add the test executable
+    set(TEST_SOURCES
+        tests/test_main.cpp
+        tests/agent_test.cpp
+        tests/agent_factory_test.cpp
+        tests/agent_manager_test.cpp
+        tests/framework_test.cpp
+        tests/learning_agent_test.cpp
+        tests/rule_based_agent_test.cpp
+        tests/integration_test.cpp
+    )
+    
+    add_executable(run_tests ${TEST_SOURCES})
+    target_link_libraries(run_tests
+        PRIVATE
+            ai_framework
+            Catch2::Catch2
+            curl
+    )
+    
+    # Register tests with CTest
+    include(CTest)
+    include(Catch)
+    catch_discover_tests(run_tests)
+endif()
+
+# Installation
+install(TARGETS ai_framework
+    EXPORT ai_framework-targets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    INCLUDES DESTINATION include
+)
+
+install(FILES ${FRAMEWORK_HEADERS}
+    DESTINATION include/ai_framework
+)
+
+# Generate and install package configuration
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    ai_frameworkConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+install(EXPORT ai_framework-targets
+    FILE ai_frameworkTargets.cmake
+    NAMESPACE ai_framework::
+    DESTINATION lib/cmake/ai_framework
+)
+
+configure_file(cmake/ai_frameworkConfig.cmake.in ai_frameworkConfig.cmake @ONLY)
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/ai_frameworkConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/ai_frameworkConfigVersion.cmake
+    DESTINATION lib/cmake/ai_framework
+)
