@@ -99,17 +99,17 @@ int main(int argc, char* argv[]) {
     
     // Register agent types
     
-    agentManager.RegisterAgentType(
-        "learning", 
-        [](so_5::environment_t& env, const std::string& id) -> std::shared_ptr<Agent> {
-            return std::make_shared<LearningAgent>(env, id);
-        });
+    // agentManager.RegisterAgentType(
+    //     "learning", 
+    //     [](so_5::environment_t& env, const std::string& id) -> std::shared_ptr<Agent> {
+    //         return std::make_shared<LearningAgent>(env, id);
+    //     });
     
-    agentManager.RegisterAgentType(
-        "rule_based", 
-        [](so_5::environment_t& env, const std::string& id) -> std::shared_ptr<Agent> {
-            return std::make_shared<RuleBasedAgent>(env, id);
-        });
+    // agentManager.RegisterAgentType(
+    //     "rule_based", 
+    //     [](so_5::environment_t& env, const std::string& id) -> std::shared_ptr<Agent> {
+    //         return std::make_shared<RuleBasedAgent>(env, id);
+    //     });
     
     // Create agents based on configuration
     if (config.contains("agents")) {
@@ -128,62 +128,62 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Initialize and start the framework
-    Framework framework;
-    if (!framework.Initialize(config.dump())) {
-        LoggingService::GetInstance().Log(
-            LogLevel::ERROR, 
-            "Failed to initialize framework");
-        return 1;
-    }
+    // // Initialize and start the framework
+    // Framework framework;
+    // if (!framework.Initialize(config.dump())) {
+    //     LoggingService::GetInstance().Log(
+    //         LogLevel::ERROR, 
+    //         "Failed to initialize framework");
+    //     return 1;
+    // }
 
-    if (!framework.Start()) {
-        LoggingService::GetInstance().Log(
-            LogLevel::ERROR, 
-            "Failed to start framework");
-        return 1;
-    }
+    // if (!framework.Start()) {
+    //     LoggingService::GetInstance().Log(
+    //         LogLevel::ERROR, 
+    //         "Failed to start framework");
+    //     return 1;
+    // }
 
-    // Initialize WebSocket server
-    WebSocketServer wsServer(config.value("websocket_port", 9090));
-    wsServer.SetMessageHandler([&agentManager](
-        const std::string& clientId, 
-        const std::string& message,
-        std::function<void(const std::string&)> sendResponse) {
+    // // Initialize WebSocket server
+    // WebSocketServer wsServer(config.value("websocket_port", 9090));
+    // wsServer.SetMessageHandler([&agentManager](
+    //     const std::string& clientId, 
+    //     const std::string& message,
+    //     std::function<void(const std::string&)> sendResponse) {
         
-        // Parse the message and route to appropriate agent
-        // Example implementation
-        try {
-            nlohmann::json jsonMessage = nlohmann::json::parse(message);
-            std::string targetAgent = jsonMessage["agent"].get<std::string>();
-            std::string content = jsonMessage["message"].get<std::string>();
+    //     // Parse the message and route to appropriate agent
+    //     // Example implementation
+    //     try {
+    //         nlohmann::json jsonMessage = nlohmann::json::parse(message);
+    //         std::string targetAgent = jsonMessage["agent"].get<std::string>();
+    //         std::string content = jsonMessage["message"].get<std::string>();
             
-            std::string response = agentManager.SendMessage(targetAgent, content);
-            sendResponse(response);
-        }
-        catch (const std::exception& e) {
-            sendResponse("{\"error\": \"" + std::string(e.what()) + "\"}");
-        }
-    });
+    //         std::string response = agentManager.SendMessage(targetAgent, content);
+    //         sendResponse(response);
+    //     }
+    //     catch (const std::exception& e) {
+    //         sendResponse("{\"error\": \"" + std::string(e.what()) + "\"}");
+    //     }
+    // });
 
-    if (!wsServer.Start()) {
-        LoggingService::GetInstance().Log(
-            LogLevel::ERROR, 
-            "Failed to start WebSocket server");
-        return 1;
-    }
+    // if (!wsServer.Start()) {
+    //     LoggingService::GetInstance().Log(
+    //         LogLevel::ERROR, 
+    //         "Failed to start WebSocket server");
+    //     return 1;
+    // }
 
-    // Set up signal handling for clean shutdown
-    signal(SIGINT, signal_handler);
-    signal(SIGTERM, signal_handler);
+    // // Set up signal handling for clean shutdown
+    // signal(SIGINT, signal_handler);
+    // signal(SIGTERM, signal_handler);
 
-    // Main loop
-    while (g_running) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
+    // // Main loop
+    // while (g_running) {
+    //     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    // }
 
-    // Clean shutdown
-    wsServer.Stop();
-    framework.Stop();
+    // // Clean shutdown
+    // wsServer.Stop();
+    // framework.Stop();
 
 }
