@@ -1,84 +1,85 @@
-cmake_minimum_required(VERSION 3.14)
-project(AIFramework)
-#enable_testing()
+cmake_minimum_required(VERSION 3.15)
 
-# Set C++ standard
+project(ai-agent-framework)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
+# --- FetchContent for Dependencies ---
 include(FetchContent)
-set(FETCHCONTENT_QUIET OFF)
+
+# SObjectizer
 FetchContent_Declare(
-    sobjectizer
+    SObjectizer
     GIT_REPOSITORY https://github.com/Stiffstream/sobjectizer.git
     GIT_TAG v.5.8.4
 )
-FetchContent_MakeAvailable(sobjectizer)
-add_library(sobjectizer INTERFACE)
 
-# Fetch uWebSockets
+# uWebSockets
 FetchContent_Declare(
     uwebsockets
     GIT_REPOSITORY https://github.com/uNetworking/uWebSockets.git
-    GIT_TAG v20.51.0 # Use the latest stable version
+    GIT_TAG v20.51.0
 )
-FetchContent_MakeAvailable(uwebsockets)
-add_library(uwebsockets INTERFACE)
 
+# nlohmann_json
 FetchContent_Declare(
   json
   GIT_REPOSITORY https://github.com/nlohmann/json.git
-  GIT_TAG v3.11.2  # Specify the version you want
+  GIT_TAG v3.11.2
 )
-# Make the library available
+
+# zlib
+FetchContent_Declare(
+    zlib
+    GIT_REPOSITORY https://github.com/madler/zlib.git
+    GIT_TAG v1.3.1
+)
+
+# Fetch and add dependencies
+FetchContent_MakeAvailable(SObjectizer)
+FetchContent_MakeAvailable(uwebsockets)
 FetchContent_MakeAvailable(json)
-add_library(json INTERFACE)
+FetchContent_MakeAvailable(zlib)
 
-# Source files
-set(SOURCES
-    src/main.cpp
-    src/agent.cpp
-    src/agent_factory.cpp
-    src/agent_manager.cpp
-    src/logging_service.cpp
-    src/learning_agent.cpp
-    src/rule_based_agent.cpp
-)
-
-# Header files
-set(HEADERS
-    src/agent_factory.h
-    src/agent_manager.h
-    src/agent.h
-    src/framework.h
-    src/logging_service.h
-    src/messages.h
-    src/websocket_server.h
-    src/logging_service.h
-)
-
-# Create executable
-add_executable(ai_framework ${SOURCES} ${HEADERS})
-
-# Link libraries
+# --- Dependencies ---
 find_package(Threads REQUIRED)
-find_package(OpenSSL REQUIRED)
 
-target_include_directories(ai_framework PRIVATE
-    ${sobjectizer_SOURCE_DIR}/dev
+# --- Source Files ---
+file(GLOB_RECURSE SOURCES "src/*.cpp")
+
+# --- Executable ---
+add_executable(${PROJECT_NAME} ${SOURCES})
+
+
+# --- Link Libraries ---
+target_link_libraries(${PROJECT_NAME}
+    SObjectizer::sobjectizer
+    Threads::Threads
+    uwebsockets::uwebsockets
+    json
+    zlib::zlib  # Changed this line
+)
+
+# --- Include Directories ---
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${SObjectizer_SOURCE_DIR}/dev
     ${uwebsockets_SOURCE_DIR}/src
     ${uwebsockets_SOURCE_DIR}/uSockets/src
+    ${json_SOURCE_DIR}/include
+    src
 )
 
-# Link dependencies
-target_link_libraries(ai_framework PRIVATE
-    sobjectizer
-    Threads::Threads
-    OpenSSL::SSL
-    uwebsockets
-    nlohmann_json::nlohmann_json
-)
+# --- Install Rules (Optional) ---
+# install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+# install(DIRECTORY src DESTINATION include)
 
-#add_executable(my_test tests/ActorSystemTests.cpp)
-#target_link_libraries(my_test PRIVATE my_library)
-#add_test(NAME MyTest COMMAND my_test)
+# --- Enable Testing (Optional) ---
+# enable_testing()
+# add_test(NAME my_test COMMAND ${PROJECT_NAME} test)
+
+# Copy config file to build folder if exists
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/config.json")
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/config.json" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+endif()
