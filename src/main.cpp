@@ -99,11 +99,11 @@ int main(int argc, char* argv[]) {
     
     // Register agent types
     
-    agentManager.RegisterAgentType(
-        "learning", 
-        [](so_5::environment_t& env, const std::string& id) -> std::shared_ptr<Agent> {
-            return std::make_shared<LearningAgent>(env, id);
-        });
+    // agentManager.RegisterAgentType(
+    //     "learning", 
+    //     [](so_5::environment_t& env, const std::string& id) -> std::shared_ptr<Agent> {
+    //         return std::make_shared<LearningAgent>(env, id);
+    //     });
     
     // agentManager.RegisterAgentType(
     //     "rule_based", 
