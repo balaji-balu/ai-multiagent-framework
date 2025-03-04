@@ -105,11 +105,11 @@ int main(int argc, char* argv[]) {
             return std::make_shared<LearningAgent>(env, id);
         });
     
-    agentManager.RegisterAgentType(
-        "rule_based", 
-        [](so_5::environment_t& env, const std::string& id) -> std::shared_ptr<Agent> {
-            return std::make_shared<RuleBasedAgent>(env, id);
-        });
+    // agentManager.RegisterAgentType(
+    //     "rule_based", 
+    //     [](so_5::environment_t& env, const std::string& id) -> std::shared_ptr<Agent> {
+    //         return std::make_shared<RuleBasedAgent>(env, id);
+    //     });
     
     // Create agents based on configuration
     if (config.contains("agents")) {
